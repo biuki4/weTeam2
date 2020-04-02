@@ -139,7 +139,7 @@
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>6.0</version>
+            <version>7.9</version>
         </dependency>
         <!--自定义的元数据依赖-即使用yml中自定义属性-->
         <dependency>
