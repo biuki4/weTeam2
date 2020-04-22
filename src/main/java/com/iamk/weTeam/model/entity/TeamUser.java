@@ -1,13 +1,11 @@
 package com.iamk.weTeam.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Getter
-@Setter
+@Data
 @Entity
 @IdClass(value = TeamUser.class)
 @Table(name = "team_user")
@@ -23,4 +21,6 @@ public class TeamUser implements Serializable {
     private Integer userId;
 
     private Integer type;
+
+
 }

@@ -14,4 +14,5 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
     @Query(value = "select u.id, u.nickname, u.username, u.gender from user u, admin a where u.id = a.user_id and a.set_id = :userId", nativeQuery = true)
     List<Map<String, Object>> findBySetId(@Param("userId") Integer userId);
 
+    Admin findByUserId(Integer id);
 }

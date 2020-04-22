@@ -6,8 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -34,9 +36,9 @@ public interface GameRepository extends JpaRepository<Game, Integer> {
     List<Game> findAll(Specification<Game> spec, Pageable pageable);
 
 
-    Page<Game> findByGameEndTimeLessThan(Date date, Pageable pageable);
+    List<Game> findByGameEndTimeLessThan(Date date, Pageable pageable);
 
-    Page<Game> findByGameCategory(GameCategory id, Pageable pageable);
+    List<Game> findByGameCategory(GameCategory id, Pageable pageable);
 
     List<Game> findByGameCategoryAndGameSourceLikeOrGameNameLike(GameCategory gameCategory, String k, String k1, Pageable pageable);
 
@@ -47,4 +49,24 @@ public interface GameRepository extends JpaRepository<Game, Integer> {
     Page<Game> findByGameNameContaining(String key, Pageable pageable);
 
     List<Game> findByPostId(Integer userId, Pageable pageable);
+
+    List<Game> findByGameEndTimeGreaterThanEqual(Date date, Pageable pageable);
+
+    List<Game> findByGameCategoryAndGameEndTimeGreaterThanEqual(GameCategory gameCategory, Date date, Pageable pageable);
+
+    @Query(value = "select g.id, g.poster_url from game g ORDER BY g.post_time DESC limit 0,3", nativeQuery = true)
+    List<Map<String, Object>> findSlideshow();
+
+    @Transactional
+    @Modifying
+    @Query(value = "update game g set g.poster_url=:url where g.id=:id", nativeQuery = true)
+    void updatePosterUrl(String url, Integer id);
+
+    List<Game> findAllByIdInAndGameEndTimeGreaterThanEqual(List<Integer> ids, Date date);
+
+    List<Game> findAllByIdInAndGameEndTimeLessThan(List<Integer> ids, Date date);
+
+    List<Game> findByPostIdAndGameEndTimeGreaterThanEqual(Integer id, Date date, Pageable pageable);
+
+    List<Game> findByPostIdAndGameEndTimeLessThan(Integer id, Date date, Pageable pageable);
 }

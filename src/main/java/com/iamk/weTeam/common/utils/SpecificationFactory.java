@@ -25,6 +25,7 @@ public final class SpecificationFactory {
         return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get(attribute), "%" + value + "%");
     }
 
+
     /**
      * =
      * @param attribute
@@ -75,8 +76,9 @@ public final class SpecificationFactory {
     public static Specification in(String attribute, Integer[] c) {
         return (root, query, criteriaBuilder) -> root.get(attribute).in(c);
     }
+
     /**
-     * >=
+     * >
      * @param attribute
      * @param value
      * @return
@@ -93,6 +95,25 @@ public final class SpecificationFactory {
         return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get(attribute), value);
     }
 
+
+    /**
+     * >=
+     * @param attribute
+     * @param value
+     * @return
+     */
+    public static Specification greaterEqualThan(String attribute, BigDecimal value) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get(attribute), value);
+    }
+
+    public static Specification greaterEqualThan(String attribute, Long value) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get(attribute), value);
+    }
+
+    public static Specification greaterEqualThan(String attribute, Date value) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get(attribute), value);
+    }
+
     /**
      * <=
      * @param attribute
@@ -103,6 +124,10 @@ public final class SpecificationFactory {
         return (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get(attribute), value);
     }
 
+    public static Specification lessThan(String attribute, Date value) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get(attribute), value);
+    }
+
     /**
      * 联表
      * @param tableName
@@ -110,9 +135,10 @@ public final class SpecificationFactory {
      * @param value
      * @return
      */
-    public static Specification join(String tableName, String attribute, Integer value) {
+    public static Specification join_equal(String tableName, String attribute, Integer value) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join(tableName).get(attribute), value);
     }
+
 
     // public static Specification test() {
     //     return  (root, query, criteriaBuilder) -> root.join(Game.gameTags)

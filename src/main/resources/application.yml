@@ -5,11 +5,15 @@ server:
   tomcat:
     uri-encoding: UTF-8
 
+
 spring:
   mvc:
     view:
       prefix: /WEB-INF/views/
       suffix: .jsp
+    static-path-pattern: /tmp/**
+  resources:
+    static-locations: classpath:/tmp/
 
   datasource:
     url: jdbc:mysql://39.105.190.51:3306/weteam?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
@@ -35,15 +39,17 @@ spring:
 
   redis:
     host: 39.105.190.51     # 服务器地址
-    port: 6379          # 端口
-    timeout: 6000       # 链接超时时间 ms
+    port: 6379
+    password: 123456         # 端口
+    timeout: 5000       # 链接超时时间 ms
     jedis:
-      pool:             # 连接池
-        max-active: 8   # 最大激活数
-        max-idle: 8     # 最大空闲数
-        max-wait: -1    # 最大等待时间
-        min-idle: 0     # 最小空闲活动连接数
-    password: 123456
+        pool:             # 连接池
+          max-active: 8   # 最大激活数
+          max-idle: 8     # 最大空闲数
+          max-wait: -1    # 最大等待时间
+          min-idle: 0     # 最小空闲活动连接数
+    database: 0           # 数据库索引
+
 
   # 文件上传
   servlet:
@@ -58,9 +64,29 @@ spring:
 
 #自定义属性
 wechat:
-  appId: wx40c243ab429ab596
-  appSecret: 270ae7b609453ea5af9510a9271df25d
+  appId: wx42ac70376e53ee05
+  appSecret: 13ff5f902585ed936bbc7c1f786644d3
   url: https://api.weixin.qq.com/sns/jscode2session
 
 upload:
-  avatarPath: https://www.iamk.top/weTeam-file/avatar/
+  avatarPath: /home/nginx/html/static/tmp/
+  avatarPath2: /tmp/
+
+# 七牛云
+qiniu:
+  accessKey: o7QJ7paYAekMsth9ULf1bBclnYVQf-MxNNSJ3qpB
+  secretKey: O4COxC1ZEH3viiXi9Zl7fBfoJeqH-XFojFOAO_Ly
+  bucketName: iamk-weteam
+  fileDomain: http://cdn.img.iamk.top
+
+baseUploadUrl: /tmp
+
+# log4j2
+logging:
+  config: classpath:log4j2.xml
+  level:
+    cn.jay.repository: trace
+#  level:
+#    org:
+#      springframework: INFO
+

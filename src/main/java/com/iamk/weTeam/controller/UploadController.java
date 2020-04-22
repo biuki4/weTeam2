@@ -3,32 +3,48 @@ package com.iamk.weTeam.controller;
 import com.iamk.weTeam.common.UnicomResponseEnums;
 import com.iamk.weTeam.common.annotation.PassToken;
 import com.iamk.weTeam.common.utils.FtpUtils;
+import com.iamk.weTeam.common.utils.QiNiuUtil;
 import com.iamk.weTeam.common.utils.ResultUtil;
+import com.iamk.weTeam.model.entity.Game;
+import com.iamk.weTeam.repository.GameRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/upload")
 public class UploadController {
 
     @Value("${upload.avatarPath}")
     private String filePath;
+    @Value("${upload.avatarPath2}")
+    private String filePath2;
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
+    @Resource
+    GameRepository gameRepository;
+
+    /**
+     * 只能用于本地，未解决上传到服务器
+     * @param file
+     * @param req
+     * @return
+     */
     @PassToken
     @RequestMapping("/uploadImg")
     public ResultUtil upload(MultipartFile file, HttpServletRequest req){
@@ -72,10 +88,11 @@ public class UploadController {
             System.out.println(url);
             return ResultUtil.success(UnicomResponseEnums.FILEUPLOAD_SUCCESS, url);
         }catch (Exception e){
-            System.out.println("失败");
+            log.error(e.getMessage());
             return ResultUtil.error(UnicomResponseEnums.UPDATE_FAIL);
         }
     }
+
 
     @PassToken
     @RequestMapping("/test")
@@ -94,5 +111,33 @@ public class UploadController {
         }
         System.out.println(filePath);
         return filePath;
+    }
+
+    @Autowired
+    private QiNiuUtil qiniuUtil;
+
+    @PassToken
+    @RequestMapping("/upload/{id}")
+    @ResponseBody
+    public ResultUtil upload(@RequestParam("file") MultipartFile file, @PathVariable Integer id) {
+        if (file.isEmpty()) {
+            return ResultUtil.error(UnicomResponseEnums.NO_FILE);
+        }
+        try {
+            FileInputStream fileInputStream = (FileInputStream) file.getInputStream();
+            String originalFilename = file.getOriginalFilename();
+            String fileExtend = originalFilename.substring(originalFilename.lastIndexOf("."));
+            //默认不指定key的情况下，以文件内容的hash值作为文件名
+            String format = sdf.format(new Date());
+            // String fileKey = UUID.randomUUID().toString().replace("-", "") + fileExtend;
+            String fileKey = format + "-" + UUID.randomUUID() + fileExtend;
+            String url = qiniuUtil.upload(fileInputStream,fileKey);
+            // 存入game
+            gameRepository.updatePosterUrl(url, id);
+            return ResultUtil.success();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResultUtil.error(UnicomResponseEnums.SERVER_BUSY);
+        }
     }
 }

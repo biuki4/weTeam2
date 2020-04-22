@@ -65,23 +65,48 @@ public class TeamController {
         team.setSize(game.getTeamSize());
         String teamNo = MyUtils.createTeamNo(team);
         team.setTeamNo(teamNo);
-        System.out.println(teamNo);
-        System.out.println(team);
+        // System.out.println(teamNo);
+        // System.out.println(team);
         teamRepository.save(team);
         return ResultUtil.success();
     }
 
     /**
      * 解散队伍
-     * @param teamId
-     * @param applyId
      * @param httpServletRequest
      * @return
      */
     @PassToken
-    @RequestMapping("/dissolve")
-    public ResultUtil dissolve(@RequestParam Integer teamId,
-                               @RequestParam Integer applyId, HttpServletRequest httpServletRequest) {
+    @RequestMapping("/dissolve/{id}")
+    public ResultUtil dissolve(@PathVariable Integer id, HttpServletRequest httpServletRequest) {
+        // userId
+        String token = httpServletRequest.getHeader("token");
+        Integer userId = MyUtils.getUserIdFromToken(token);
+        Team team = teamRepository.findById(id).orElse(null);
+        // 非队长操作
+        if(team.getUserId() != userId) {
+            return ResultUtil.error(UnicomResponseEnums.NOT_LEADER);
+        }
+        // 删除
+        teamUserRepository.deleteByTeamId(id);
+        teamRepository.delete(team);
+        return ResultUtil.success();
+    }
+
+    /**
+     * 更新队伍信息
+     * @param teamId
+     * @param name
+     * @param brief
+     * @param httpServletRequest
+     * @return
+     */
+    @RequestMapping("/update")
+    public ResultUtil update(@RequestParam Integer teamId,
+                             @RequestParam(defaultValue = "") String name,
+                             @RequestParam(defaultValue = "") String contact,
+                             @RequestParam(defaultValue = "") String brief,
+                             HttpServletRequest httpServletRequest) {
         // userId
         String token = httpServletRequest.getHeader("token");
         Integer userId = MyUtils.getUserIdFromToken(token);
@@ -90,9 +115,17 @@ public class TeamController {
         if(team.getUserId() != userId) {
             return ResultUtil.error(UnicomResponseEnums.NOT_LEADER);
         }
-        // 删除
-        teamRepository.delete(team);
-        teamUserRepository.deleteByTeamId(team.getId());
+        // 更新
+        if(!name.equals("")){
+            team.setName(name);
+        }
+        if(!brief.equals("")){
+            team.setBrief(brief);
+        }
+        if(!contact.equals("")) {
+            team.setContact(contact);
+        }
+        teamRepository.save(team);
         return ResultUtil.success();
     }
 
@@ -102,7 +135,6 @@ public class TeamController {
      * @param id    竞赛id
      * @return
      */
-    // @PassToken
     @RequestMapping("/{id}")
     public ResultUtil findById(@PathVariable Integer id, HttpServletRequest httpServletRequest) {
         // userId
@@ -143,6 +175,64 @@ public class TeamController {
     }
 
     /**
+     * 正在申请的用户列表
+     * @param id teamid
+     * @return
+     */
+    @RequestMapping("applyList/{id}")
+    public ResultUtil applyList(@PathVariable Integer id) {
+        // 申请成员
+        List<Map<String, Object>> users = teamRepository.findTeamMember(id, 0);
+        return ResultUtil.success(users);
+    }
+
+    /**
+     * 队伍详情
+     * @param id teamId
+     * @param httpServletRequest
+     * @return
+     */
+    @RequestMapping("/teamDetail/{id}")
+    public ResultUtil teamDetail(@PathVariable Integer id, HttpServletRequest httpServletRequest) {
+        // userId
+        String token = httpServletRequest.getHeader("token");
+        Integer userId = MyUtils.getUserIdFromToken(token);
+        // team
+        Team team = teamRepository.findById(id).orElse(null);
+        // game
+        Game game = gameRepository.findById(team.getGameId()).orElse(null);
+        // leader
+        User leader = userRepository.findById(team.getUserId()).orElse(null);
+        // 正式成员
+        List<Map<String, Object>> members = teamRepository.findTeamMember(id, 1);
+        team.setMembers(members);
+        // 该userId是否是正式成员
+        for(Map<String, Object> m : members){
+            if(m.get("id") == userId){
+                team.setIsMember(true);
+                break;
+            }
+        }
+        // 申请成员
+        List<Map<String, Object>> applicant = teamRepository.findTeamMember(id, 0);
+        team.setApplicant(applicant);
+        // 该userId是否是申请成员
+        if(!team.getIsMember()){
+            for(Map<String, Object> a : applicant){
+                if(a.get("id") == userId){
+                    team.setIsApplicant(true);
+                    break;
+                }
+            }
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("team", team);
+        jsonObject.put("game", game);
+        jsonObject.put("leader",leader);
+        return ResultUtil.success(jsonObject);
+    }
+
+    /**
      * 申请加入
      * @param id    teamId
      * @param httpServletRequest
@@ -165,6 +255,16 @@ public class TeamController {
         TeamUser t = teamUserRepository.findByTeamIdAndUserId(team.getId(), userId);
         if(t != null){
             return ResultUtil.error(UnicomResponseEnums.HAS_APPLY);
+        }
+        // 已加入别的队伍
+        Integer integer = teamUserRepository.countUser(team.getGameId(), userId, 1);
+        if(integer > 0){
+            return ResultUtil.error(UnicomResponseEnums.HAS_TEAM);
+        }
+        // 该Id已经创建队伍
+        Team t1 = teamRepository.findByUserIdAndGameId(userId, team.getGameId());
+        if(t1 != null){
+            return ResultUtil.error(UnicomResponseEnums.HAS_TEAM);
         }
         // 队伍未满
         TeamUser tu = new TeamUser();
@@ -201,7 +301,7 @@ public class TeamController {
      */
     @PassToken
     @RequestMapping("/agree")
-    public ResultUtil apply(@RequestParam Integer teamId,
+    public ResultUtil agree(@RequestParam Integer teamId,
                             @RequestParam Integer applyId, HttpServletRequest httpServletRequest) {
         // userId
         String token = httpServletRequest.getHeader("token");
@@ -211,15 +311,57 @@ public class TeamController {
         if(team.getUserId() != userId) {
             return ResultUtil.error(UnicomResponseEnums.NOT_LEADER);
         }
+        // 队伍已满
+        Integer num = teamUserRepository.countTeamMember(team.getId(), 1);
+        if(num >= team.getSize()-1) {
+            return ResultUtil.error(UnicomResponseEnums.TEAM_FULL);
+        }
+        // 已加入别的队伍
+        Integer integer = teamUserRepository.countUser(team.getGameId(), applyId, 1);
+        if(integer > 0){
+            return ResultUtil.error(UnicomResponseEnums.HAS_TEAM);
+        }
+        // 该Id已经创建队伍
+        Team t1 = teamRepository.findByUserIdAndGameId(applyId, team.getGameId());
+        if(t1 != null){
+            return ResultUtil.error(UnicomResponseEnums.HAS_TEAM);
+        }
         // 同意加入
         TeamUser tu = teamUserRepository.findByTeamIdAndUserId(teamId, applyId);
+        teamUserRepository.delete(tu);
         tu.setType(1);
         teamUserRepository.save(tu);
         return ResultUtil.success();
     }
 
     /**
-     * 删除一个申请 或 一个队员
+     * 拒绝申请
+     * @param teamId
+     * @param applyId
+     * @param httpServletRequest
+     * @return
+     */
+    @RequestMapping("/disagree")
+    public ResultUtil disagree(@RequestParam Integer teamId,
+                            @RequestParam Integer applyId, HttpServletRequest httpServletRequest) {
+        // userId
+        String token = httpServletRequest.getHeader("token");
+        Integer userId = MyUtils.getUserIdFromToken(token);
+        Team team = teamRepository.findById(teamId).orElse(null);
+        // 非队长操作
+        if(team.getUserId() != userId) {
+            return ResultUtil.error(UnicomResponseEnums.NOT_LEADER);
+        }
+        // 拒绝
+        TeamUser tu = teamUserRepository.findByTeamIdAndUserId(teamId, applyId);
+        teamUserRepository.delete(tu);
+        tu.setType(2);
+        teamUserRepository.save(tu);
+        return ResultUtil.success();
+    }
+
+    /**
+     * 删除一个队员
      * @param teamId
      * @param applyId
      * @param httpServletRequest
@@ -237,12 +379,32 @@ public class TeamController {
         if(team.getUserId() != userId) {
             return ResultUtil.error(UnicomResponseEnums.NOT_LEADER);
         }
-        // 同意加入
+        // 删除
         TeamUser tu = teamUserRepository.findByTeamIdAndUserId(teamId, applyId);
         teamUserRepository.delete(tu);
         return ResultUtil.success();
     }
 
-
+    /**
+     * 我的队伍
+     * @param id userId
+     * @param httpServletRequest
+     * @return
+     */
+    @RequestMapping("/myTeam")
+    public ResultUtil myTeam(@RequestParam(defaultValue = "0") Integer id, HttpServletRequest httpServletRequest){
+        if(id==0){
+            String token = httpServletRequest.getHeader("token");
+            id = MyUtils.getUserIdFromToken(token);
+        }
+        // 我的创建
+        List<Map<String, Object>> myTeams = teamRepository.findByUserId(id);
+        // 我的参与
+        List<Map<String, Object>> myParticipate = teamRepository.findParticipateById(id);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("myTeams", myTeams);
+        jsonObject.put("myParticipate", myParticipate);
+        return ResultUtil.success(jsonObject);
+    }
 
 }

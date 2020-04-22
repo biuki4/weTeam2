@@ -32,9 +32,10 @@ public class User implements Serializable {
 
     private String openId;
 
-    private int gender;
+    private Integer gender;
 
-    private int userType;
+    @Transient
+    private Integer userType = 3;
 
     private Integer showMe;
 
@@ -44,6 +45,8 @@ public class User implements Serializable {
 
     @Transient      // 非持久化字段
     private String academy;
+
+    private String contact;
 
     private String phone;
 
@@ -55,9 +58,11 @@ public class User implements Serializable {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "create_time")
     private Date createTime;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "login_last_time")
     private Date loginLastTime;
 

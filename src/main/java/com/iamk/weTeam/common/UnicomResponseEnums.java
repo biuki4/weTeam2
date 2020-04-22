@@ -8,7 +8,6 @@ public enum UnicomResponseEnums {
     SIGNATURE_NOT_MATCH("401", "请求的数字签名不匹配!"),
     NOT_FOUND("404", "未找到该资源!"),
     INTERNAL_SERVER_ERROR("500", "服务器内部错误!"),
-    SERVER_BUSY("503", "服务器正忙，请稍后再试!"),
     REQUEST_METHOD_SUPPORT_ERROR("40001","当前请求方法不支持"),
 
     SYSTEM_ERROR("-001","系统异常"),
@@ -27,10 +26,28 @@ public enum UnicomResponseEnums {
     FILEUPLOAD_SUCCESS("007","上传成功"),
     FILEUPLOAD_FAIL("008","上传失败"),
     NO_PERMISSION("009", "权限不足"),
+
+    // user
+
+
+    // common
+    SERVER_BUSY("0001", "服务器正忙，请稍后再试!"),
+
+    // team
     TEAM_FULL("1001", "队伍已满"),
     HAS_APPLY("1002", "请勿重复申请"),
     HAS_CREATE("1003", "请勿重复创建"),
-    NOT_LEADER("1004", "您不是该队队长");
+    NOT_LEADER("1004", "您不是该队队长"),
+    HAS_TEAM("1005", "您已加入其他队伍"),
+
+    // admin
+    NOT_ADMIN("2001", "您不是管理员，没有权限"),
+    NO_RIGHT("2002", "权限不足"),
+    UPLOAD_FAIL("2003", "文件上传失败"),
+    NO_FILE("2004", "未识别文件"),
+
+    // game
+    NO_GAME("3001", "竞赛已删除");
 
 
     // REPEAT_REGISTER("001","重复注册"),

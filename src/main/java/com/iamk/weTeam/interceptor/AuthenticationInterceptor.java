@@ -29,10 +29,15 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Autowired
     RedisUtil redisUtil;
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HandlerInterceptor.class);
+
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest,
                              HttpServletResponse httpServletResponse, Object object) throws Exception {
+
+        log.info("当前访问： " + httpServletRequest.getRequestURI());
         System.out.println("当前访问： " + httpServletRequest.getRequestURI());
+        String requestURI = httpServletRequest.getRequestURI();
         // 如果不是映射到方法直接通过
         if (!(object instanceof HandlerMethod)) {
             return true;
@@ -45,7 +50,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             if (passToken.required())
                 return true;
         }
-        System.out.println("没有passToken");
+        // System.out.println("没有passToken");
         // 从 http 请求头中取出 token
         String token = httpServletRequest.getHeader("token");
         // System.out.println("拦截器： " + token);
@@ -61,12 +66,13 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             System.out.println("claims解析错误");
             throw new UnicomRuntimeException(UnicomResponseEnums.SIGNATURE_NOT_MATCH);
         }
-        System.out.println("claims: " + claims);
+        // System.out.println("claims: " + claims);
         String userId = (String) claims.get("jti");
         String openId = (String) claims.get("sub");
 
         // 从redis中查看登录是否过期
-        String key = RedisKeyUtil.createKey("user", "userId", userId);
+        String key = RedisKeyUtil.createKey("login:user", "userId", userId);
+        // System.out.println("key: " + key);
         if(!redisUtil.hasKey(key)){
             throw new UnicomRuntimeException(UnicomResponseEnums.LOGIN_DATED);
         }

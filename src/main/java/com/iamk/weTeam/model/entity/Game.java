@@ -31,19 +31,25 @@ public class Game implements Serializable {
     @Column(name = "game_content")
     private String gameContent;
 
+    private String contact;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "post_time")
     private Date postTime;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "register_start_time")
     private Date registerStartTime;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "register_end_time")
     private Date registerEndTime;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "game_start_time")
     private Date gameStartTime;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "game_end_time")
     private Date gameEndTime;
 
@@ -55,6 +61,8 @@ public class Game implements Serializable {
 
     @Column(name = "game_url")
     private String gameUrl;
+
+    private String registerUrl;
 
     @Column(name = "team_size")
     private Integer teamSize;
@@ -82,6 +90,7 @@ public class Game implements Serializable {
                 ", gameName='" + gameName + '\'' +
                 ", posterUrl='" + posterUrl + '\'' +
                 ", gameContent='" + gameContent + '\'' +
+                ", contact='" + contact + '\'' +
                 ", postTime=" + postTime +
                 ", registerStartTime=" + registerStartTime +
                 ", registerEndTime=" + registerEndTime +
@@ -90,7 +99,8 @@ public class Game implements Serializable {
                 ", gameSource='" + gameSource + '\'' +
                 ", gameType=" + gameType +
                 ", gameUrl='" + gameUrl + '\'' +
-                ", teamSize='" + teamSize + '\'' +
+                ", registerUrl='" + registerUrl + '\'' +
+                ", teamSize=" + teamSize +
                 ", gameViews=" + gameViews +
                 ", gameCategory=" + gameCategory +
                 ", gameTags=" + gameTags +

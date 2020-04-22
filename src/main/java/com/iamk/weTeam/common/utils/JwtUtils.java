@@ -19,8 +19,8 @@ public class JwtUtils {
 
     // 生成密钥的字符串
     private static final byte[] SECRET = "WeTeam_IAMK_NWPU_QQ1249248952_".getBytes();
-    // // 过期时间 1天*2
-    private static final long EXPIRE_TIME = System.currentTimeMillis() + 1000 * 60 * 60 * 12 * 2;
+    // // 过期时间 1天*30
+    private static final long EXPIRE_TIME = System.currentTimeMillis() + 1000 * 60 * 60 * 12 * 30;
 
     /** 比如用户输入用户名和密码 若登录合法就生成jwt的一个token 发送给前端 前端存储到localStorage
      *  然后用户每次发起请求都从本地获取 携带着一个token送至后台 去验证  从而完成身份的验证

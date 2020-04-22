@@ -23,11 +23,14 @@ public class Team implements Serializable {
 
     private Integer gameId;
 
+    @Temporal(TemporalType.DATE)
     private Date createTime;
 
     private String teamNo;
 
     private String name;
+
+    private String contact;
 
     private String brief;
 

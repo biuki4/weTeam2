@@ -18,8 +18,8 @@ public interface UserRepository extends JpaRepository<User, Integer>
 
     User findByUsername(String userName);
 
-    @Query(value = "select u.id,u.avatar_url as avatarUrl from game_join gj, `user` u where gj.user_id = u.id and gj.game_team_id = :teamId and game_id = :gameId", nativeQuery = true)
-    List<Map<String, String>> findTeamMember(@Param("teamId") Integer teamId, @Param("gameId") Integer gameId);
+    // @Query(value = "select u.id,u.avatar_url as avatarUrl from game_join gj, `user` u where gj.user_id = u.id and gj.game_team_id = :teamId and game_id = :gameId", nativeQuery = true)
+    // List<Map<String, String>> findTeamMember(@Param("teamId") Integer teamId, @Param("gameId") Integer gameId);
 
     @Query(value = "select u.id,u.nickname,u.avatar_url as avatarUrl,u.academy,u.grade,u.username from user u where u.id=:userId", nativeQuery = true)
     Map<String, Object> findBaseById(@Param("userId") Integer userId);

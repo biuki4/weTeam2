@@ -17,4 +17,6 @@ public class Admin implements Serializable {
     private Integer userId;
 
     private Integer setId;
+
+    private Integer userType;
 }
