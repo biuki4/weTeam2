@@ -122,8 +122,13 @@ public class HomeController {
                 Integer userId = userRepository.findIdByOpenId(openId);
                 token = JwtUtils.createJWT(Integer.toString(userId), openId);
                 // redis 键:  user:userId:xx:  值: token
-                String key = RedisKeyUtil.createKey("user", "userId", userId);
+                String key = RedisKeyUtil.createKey("login:user", "userId", userId);
                 redisUtil.set(key, token, 60*60*24*7);
+                // if(redisUtil.hasKey(key)) {
+                //     System.out.println("123");
+                // }else {
+                //     System.out.println("456");
+                // }
             }else {
                 // 用户存在
                 if(user.getLoginEnable() == 0) {    // 禁止登录

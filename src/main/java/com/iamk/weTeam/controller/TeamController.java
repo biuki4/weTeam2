@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/team")
@@ -62,9 +63,9 @@ public class TeamController {
         team.setCreateTime(new Date());
         // new_t.setName(team.getName());
         // new_t.setBrief(team.getBrief());
-        team.setSize(game.getTeamSize());
-        String teamNo = MyUtils.createTeamNo(team);
-        team.setTeamNo(teamNo);
+        // team.setSize(game.getTeamSize());
+        // String teamNo = MyUtils.createTeamNo(team);
+        team.setTeamNo(String.valueOf(UUID.randomUUID()));
         // System.out.println(teamNo);
         // System.out.println(team);
         teamRepository.save(team);
@@ -105,6 +106,7 @@ public class TeamController {
     public ResultUtil update(@RequestParam Integer teamId,
                              @RequestParam(defaultValue = "") String name,
                              @RequestParam(defaultValue = "") String contact,
+                             @RequestParam(defaultValue = "") String size,
                              @RequestParam(defaultValue = "") String brief,
                              HttpServletRequest httpServletRequest) {
         // userId
@@ -121,6 +123,9 @@ public class TeamController {
         }
         if(!brief.equals("")){
             team.setBrief(brief);
+        }
+        if(!size.equals("")){
+            team.setSize(Integer.parseInt(size));
         }
         if(!contact.equals("")) {
             team.setContact(contact);
@@ -248,7 +253,7 @@ public class TeamController {
         // 队伍已满
         Team team = teamRepository.findById(id).orElse(null);
         Integer num = teamUserRepository.countTeamMember(team.getId(), 1);
-        if(num >= team.getSize()-1) {
+        if(num >= team.getSize()) {
             return ResultUtil.error(UnicomResponseEnums.TEAM_FULL);
         }
         // 已申请
@@ -313,7 +318,7 @@ public class TeamController {
         }
         // 队伍已满
         Integer num = teamUserRepository.countTeamMember(team.getId(), 1);
-        if(num >= team.getSize()-1) {
+        if(num >= team.getSize()) {
             return ResultUtil.error(UnicomResponseEnums.TEAM_FULL);
         }
         // 已加入别的队伍

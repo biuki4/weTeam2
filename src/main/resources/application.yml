@@ -16,7 +16,8 @@ spring:
     static-locations: classpath:/tmp/
 
   datasource:
-    url: jdbc:mysql://39.105.190.51:3306/weteam?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+
+    url: jdbc:mysql://127.0.0.1:3306/weteam?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
     username: root
     password: 123456
     driver-class-name: com.mysql.jdbc.Driver
@@ -38,9 +39,10 @@ spring:
       enabled: true
 
   redis:
-    host: 39.105.190.51     # 服务器地址
+
+    host: 127.0.0.1
     port: 6379
-    password: 123456         # 端口
+#    password: 123456         # 端口
     timeout: 5000       # 链接超时时间 ms
     jedis:
         pool:             # 连接池

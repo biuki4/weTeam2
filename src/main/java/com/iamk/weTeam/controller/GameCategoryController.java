@@ -6,6 +6,7 @@ import com.iamk.weTeam.common.utils.ResultUtil;
 import com.iamk.weTeam.model.entity.GameCategory;
 import com.iamk.weTeam.repository.GameCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +29,7 @@ public class GameCategoryController {
      */
     @PassToken
     @GetMapping
+    @CrossOrigin
     public ResultUtil category() {
         // redis中取
         String key = "category";
