@@ -16,8 +16,8 @@ spring:
     static-locations: classpath:/tmp/
 
   datasource:
-
     url: jdbc:mysql://127.0.0.1:3306/weteam?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+
     username: root
     password: 123456
     driver-class-name: com.mysql.jdbc.Driver
@@ -42,7 +42,7 @@ spring:
 
     host: 127.0.0.1
     port: 6379
-#    password: 123456         # 端口
+    password: 123456         # 端口
     timeout: 5000       # 链接超时时间 ms
     jedis:
         pool:             # 连接池
@@ -65,10 +65,23 @@ spring:
 #  mapper-locations: classpath*:mapper/*.xml
 
 #自定义属性
+# miniProgram
 wechat:
   appId: wx42ac70376e53ee05
   appSecret: 13ff5f902585ed936bbc7c1f786644d3
   url: https://api.weixin.qq.com/sns/jscode2session
+
+# 公众号
+wx:
+  mp:
+    myOpenId: o0fNJxCNgwtbQ4sr3GcKEEZtFY_M
+    configs:
+      - appId: wx3925f5e9929075e1
+        secret: a1ace361289cf41b1d798d6b0df2621d
+        token: iamk                                           # 微信服务器验证需要的自定义token
+        aesKey: j2DsWmU8Tkfw5VrvJHfELd6P3VU4hcPx9P5xcPSran6
+        applyTemplateId: lJQFG72EBHH2LbPjgfVP1ETCfEoVRROGGgm5ZhOrqi8  # 申请加入模板id
+        informTemplateId: NeUX6RGvkLylaBS3CqHD_Ztk81-h311WpGVMgfoTfAo  # 消息通知模板id
 
 upload:
   avatarPath: /home/nginx/html/static/tmp/

@@ -2,7 +2,7 @@ package com.iamk.weTeam.repository;
 
 
 import com.iamk.weTeam.model.entity.User;
-import com.iamk.weTeam.model.vo.IUserVo;
+import com.iamk.weTeam.model.vo.UserVo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,11 +30,14 @@ public interface UserRepository extends JpaRepository<User, Integer>
 
     List<User> findByIdIn(List<Integer> ids);
 
-    List<IUserVo> findByShowMe(Integer i, Pageable pageable);
+    List<UserVo> findByShowMe(Integer i, Pageable pageable);
 
     List<User> findAll(Specification<User> spec, Pageable pageable);
 
     @Query(value = "select u.id from user u where u.open_id = :openId", nativeQuery = true)
     Integer findIdByOpenId(String openId);
+
+    @Query(value = "select u.contact from user u where u.id = :applyId", nativeQuery = true)
+    String findContactById(Integer applyId);
 
 }

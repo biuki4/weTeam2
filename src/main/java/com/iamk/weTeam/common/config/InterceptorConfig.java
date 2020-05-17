@@ -13,7 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class InterceptorConfig implements WebMvcConfigurer {
 
-    String[] excludes = new String[]{"/static/**"};
+    String[] excludes = new String[]{"/static/**", "/api/wx/**", "/api/test/**", "/api/public/**"};
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

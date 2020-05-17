@@ -1,8 +1,8 @@
 package com.iamk.weTeam.common.utils;
 
 
-import com.iamk.weTeam.common.UnicomResponseEnums;
-import com.iamk.weTeam.common.UnicomRuntimeException;
+import com.iamk.weTeam.common.Enum.UnicomResponseEnums;
+import com.iamk.weTeam.common.expection.UnicomRuntimeException;
 import io.jsonwebtoken.*;
 import org.apache.shiro.codec.Base64;
 

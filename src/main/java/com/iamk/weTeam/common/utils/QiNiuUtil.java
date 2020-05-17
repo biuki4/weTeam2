@@ -30,6 +30,14 @@ public class QiNiuUtil {
     @Value("${qiniu.fileDomain}")
     private String fileDomain;
 
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
+    }
+
+    public void setFileDomain(String fileDomain) {
+        this.fileDomain = fileDomain;
+    }
+
     public String getAccessKey() {
         return accessKey;
     }

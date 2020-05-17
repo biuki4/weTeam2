@@ -1,12 +1,21 @@
 package com.iamk.weTeam.model.vo;
 
-import com.iamk.weTeam.model.entity.User;
-import lombok.Data;
+import java.util.Date;
 
-import java.util.List;
+public interface UserVo {
 
-@Data
-public class UserVo {
-    private List<User> user;
-    private String academy;
+    Integer getId();
+    String getNickname();
+    String getUsername();
+    Integer getGender();
+    Integer getUserType();
+    String getGrade();
+    String getAcademy();
+    String getPhone();
+    String getEmail();
+    String getPersonInfo();
+    String getAvatarUrl();
+    Date getLoginLastTime();
+    Integer getUserViews();
+
 }

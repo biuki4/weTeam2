@@ -1,19 +1,18 @@
 package com.iamk.weTeam.controller;
 
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.iamk.weTeam.common.UnicomResponseEnums;
+import com.iamk.weTeam.common.Enum.GameEnum;
+import com.iamk.weTeam.common.Enum.UnicomResponseEnums;
 import com.iamk.weTeam.common.annotation.PassToken;
+import com.iamk.weTeam.common.constant.UnionConstant;
 import com.iamk.weTeam.common.utils.*;
 import com.iamk.weTeam.model.entity.*;
-import com.iamk.weTeam.model.vo.GameTagVo;
+import com.iamk.weTeam.model.dto.GameTagDTO;
 import com.iamk.weTeam.repository.*;
-import com.iamk.weTeam.model.vo.GameUser;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -121,15 +119,14 @@ public class GameController {
                     break;
                 // 正在进行
                 case "5":
-                    spec = spec.and(SpecificationFactory.greaterThan("gameEndTime", parse1));
+                    spec = spec.and(SpecificationFactory.greaterEqualThan("registerEndTime", parse1));
                     break;
                 // 已结束
                 case "6":
-                    spec = spec.and(SpecificationFactory.lessThan("gameEndTime", parse1));
+                    spec = spec.and(SpecificationFactory.lessThan("registerEndTime", parse1));
                     break;
                 default:
-                    spec = spec.and(SpecificationFactory.greaterEqualThan("gameEndTime", parse1));
-                    // spec = spec.and(SpecificationFactory.greaterEqualThan("gameEndTime",new Date()));
+                    spec = spec.and(SpecificationFactory.greaterEqualThan("registerEndTime", parse1));
             }
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -228,14 +225,14 @@ public class GameController {
             String parse = sdf.format(date);
             Date parse1 = sdf.parse(parse);
             // 全部
-            if(id==-1){
-                games = gameRepository.findByGameEndTimeGreaterThanEqual(parse1, pageable);
-            }else if(id==0) {
+            if(id.equals(-1)){
+                games = gameRepository.findByRegisterEndTimeGreaterThanEqual(parse1, pageable);
+            }else if(id.equals(0)) {
                 // 往期精彩
-                games = gameRepository.findByGameEndTimeLessThan(parse1, pageable);
+                games = gameRepository.findByRegisterEndTimeLessThan(parse1, pageable);
             }else{
                 GameCategory gameCategory = gameCategoryRepository.findById(id).orElse(null);
-                games = gameRepository.findByGameCategoryAndGameEndTimeGreaterThanEqual(gameCategory,parse1,pageable);
+                games = gameRepository.findByGameCategoryAndRegisterEndTimeGreaterThanEqual(gameCategory,parse1,pageable);
             }
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -287,7 +284,7 @@ public class GameController {
             // game
             Game game = gameRepository.findById(id).orElse(null);
             if(game==null) {
-                return ResultUtil.error(UnicomResponseEnums.NO_GAME);
+                return ResultUtil.error(GameEnum.GAME_NOT_EXIT);
             }
             // poster
             User poster = userRepository.findById(game.getPostId()).orElse(null);
@@ -301,9 +298,10 @@ public class GameController {
                     jsonObject.put("isCollect", true);
                 }
             }
+            // 是否结束
+            // DateUtil.
             jsonObject.put("game", game);
             jsonObject.put("poster", poster);
-            System.out.println(game);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
@@ -375,15 +373,15 @@ public class GameController {
     public ResultUtil findGameAttention(@RequestParam(defaultValue = "0") Integer id, HttpServletRequest httpServletRequest){
         JSONObject jsonObject = new JSONObject();
         try{
-            if(id==0){
+            if(id.equals(0)){
                 String token = httpServletRequest.getHeader("token");
                 id = MyUtils.getUserIdFromToken(token);
             }
             List<Integer> ids = gameAttentionRepository.findGameIdById(id);
             // 正在进行
-            List<Game> games = gameRepository.findAllByIdInAndGameEndTimeGreaterThanEqual(ids, new Date());
+            List<Game> games = gameRepository.findAllByIdInAndRegisterEndTimeGreaterThanEqualOrderByPostTimeDesc(ids, new Date());
             // 已经结束
-            List<Game> games2 = gameRepository.findAllByIdInAndGameEndTimeLessThan(ids, new Date());
+            List<Game> games2 = gameRepository.findAllByIdInAndRegisterEndTimeLessThanOrderByPostTimeDesc(ids, new Date());
             jsonObject.put("curGame", games);
             jsonObject.put("endGame", games2);
         } catch (Exception e) {
@@ -442,9 +440,16 @@ public class GameController {
      * @return
      */
     @PostMapping("/add")
-    public ResultUtil addGame(@RequestBody GameTagVo gtVo, HttpServletRequest httpServletRequest){
+    public ResultUtil addGame(@RequestBody GameTagDTO gtVo, HttpServletRequest httpServletRequest){
         String token = httpServletRequest.getHeader("token");
         Integer postId = MyUtils.getUserIdFromToken(token);
+        // 将iamk发送的自动设为官方发布的
+        User user = userRepository.findById(postId).orElse(null);
+        if(user != null && user.getUnionId()!=null && !user.getUnionId().equals("")) {
+            if(user.getUnionId().equals(UnionConstant.MY_UNION_ID)) {
+                postId = 1;
+            }
+        }
         // 非管理员管理员
         Admin admin = adminRepository.findByUserId(postId);
         if(admin==null){
@@ -490,7 +495,7 @@ public class GameController {
      * @return
      */
     @PostMapping("/update")
-    public ResultUtil updateGame(@RequestBody GameTagVo gtVo, HttpServletRequest httpServletRequest){
+    public ResultUtil updateGame(@RequestBody GameTagDTO gtVo, HttpServletRequest httpServletRequest){
         Game g = gtVo.getGame();
         try{
             Game old_g = gameRepository.findById(g.getId()).orElse(null);
@@ -602,15 +607,15 @@ public class GameController {
                              @RequestParam(defaultValue = "10") Integer pageSize){
         JSONObject jsonObject = new JSONObject();
         try {
-            if(id==0){
+            if(id.equals(0)){
                 String token = httpServletRequest.getHeader("token");
                 id = MyUtils.getUserIdFromToken(token);
             }
             Pageable pageable = PageRequest.of(currentPage-1, pageSize, Sort.by(Sort.Direction.DESC, "postTime"));
             // 正在进行
-            List<Game> curGame = gameRepository.findByPostIdAndGameEndTimeGreaterThanEqual(id, new Date(), pageable);
+            List<Game> curGame = gameRepository.findByPostIdAndRegisterEndTimeGreaterThanEqualOrderByPostTimeDesc(id, new Date(), pageable);
             // 已经结束
-            List<Game> endGame = gameRepository.findByPostIdAndGameEndTimeLessThan(id, new Date(), pageable);
+            List<Game> endGame = gameRepository.findByPostIdAndRegisterEndTimeLessThanOrderByPostTimeDesc(id, new Date(), pageable);
 
             jsonObject.put("curGame", curGame);
             jsonObject.put("endGame", endGame);

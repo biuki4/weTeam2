@@ -1,6 +1,5 @@
 package com.iamk.weTeam.model.entity;
 
-import com.iamk.weTeam.model.vo.IUserVo;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -52,7 +51,5 @@ public class Team implements Serializable {
 
     @Transient
     private Boolean isApplicant = false;
-
-
 
 }

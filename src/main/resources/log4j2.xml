@@ -10,7 +10,7 @@
         <!-- %logger{36} 表示 Logger 名字最长36个字符 -->
         <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] %l : %m%n"></property>
         <!-- 定义日志存储的路径 -->
-        <property name="FILE_PATH" value="C:\Users\12492\Desktop\t" />
+        <property name="FILE_PATH" value="/logTest" />
         <property name="FILE_NAME" value="weTeam" />
     </Properties>
 <!--    [00:14:48:161] [INFO] - cn.felord.spring.security.LogController.log(LogController.java:23) - log4j2 test date: 2019-10-09 info: 请关注公众号：Felordcn-->

@@ -12,4 +12,6 @@ public interface AcademyRepository extends JpaRepository<Academy, Integer> {
 
     @Query(value = "select a.id, a.name from academy a", nativeQuery = true)
     HashMap<Integer, String> findAllMap();
+
+    Academy findByName(Object college);
 }

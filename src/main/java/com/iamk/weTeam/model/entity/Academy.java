@@ -16,4 +16,5 @@ public class Academy implements Serializable {
 
     private String name;
 
+    private Integer rank;
 }

@@ -10,8 +10,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
 @JsonIgnoreProperties("password")
 @Entity
 @Table(name = "user")
@@ -32,10 +31,9 @@ public class User implements Serializable {
 
     private String openId;
 
-    private Integer gender;
+    private String unionId;
 
-    @Transient
-    private Integer userType = 3;
+    private Integer gender;
 
     private Integer showMe;
 
@@ -43,56 +41,36 @@ public class User implements Serializable {
 
     private Integer academyId;
 
-    @Transient      // 非持久化字段
-    private String academy;
-
     private String contact;
 
     private String phone;
 
     private String email;
 
-    @Column(name = "person_info")
     private String personInfo;
 
-    @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @Temporal(TemporalType.DATE)
-    @Column(name = "create_time")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date createTime;
 
     @Temporal(TemporalType.DATE)
-    @Column(name = "login_last_time")
     private Date loginLastTime;
 
-    @Column(name = "login_enable")
     private Integer loginEnable;
 
     private Integer userViews;
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", nickname='" + nickname + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", openId='" + openId + '\'' +
-                ", gender=" + gender +
-                ", userType=" + userType +
-                ", showMe=" + showMe +
-                ", grade='" + grade + '\'' +
-                ", academyId=" + academyId +
-                ", academy='" + academy + '\'' +
-                ", phone='" + phone + '\'' +
-                ", email='" + email + '\'' +
-                ", personInfo='" + personInfo + '\'' +
-                ", avatarUrl='" + avatarUrl + '\'' +
-                ", createTime=" + createTime +
-                ", loginLastTime=" + loginLastTime +
-                ", loginEnable=" + loginEnable +
-                ", userViews=" + userViews +
-                '}';
-    }
+    @Transient
+    private Integer userType = 3;
+
+    @Transient      // 非持久化字段
+    private String academy;
+
+    /**
+     * 是否关注i瓜大， 0-否  1-是
+     */
+    @Transient
+    private Integer isBoundWeChat = 0;
+
 }

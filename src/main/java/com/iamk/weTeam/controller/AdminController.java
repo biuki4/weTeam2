@@ -1,24 +1,22 @@
 package com.iamk.weTeam.controller;
 
-import com.iamk.weTeam.common.UnicomResponseEnums;
+import com.iamk.weTeam.common.Enum.UnicomResponseEnums;
 import com.iamk.weTeam.common.annotation.PassToken;
 import com.iamk.weTeam.common.utils.MyUtils;
 import com.iamk.weTeam.common.utils.ResultUtil;
 import com.iamk.weTeam.model.entity.Admin;
+import com.iamk.weTeam.model.entity.AdminApply;
 import com.iamk.weTeam.model.entity.User;
-import com.iamk.weTeam.model.vo.IUserVo;
+import com.iamk.weTeam.repository.AdminApplyRepository;
 import com.iamk.weTeam.repository.AdminRepository;
 import com.iamk.weTeam.repository.UserRepository;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.iamk.weTeam.service.AdminService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +27,10 @@ public class AdminController {
     UserRepository userRepository;
     @Resource
     AdminRepository adminRepository;
+    @Resource
+    AdminApplyRepository adminApplyRepository;
+    @Autowired
+    AdminService adminService;
 
     /**
      * 添加管理员
@@ -71,6 +73,11 @@ public class AdminController {
         return ResultUtil.error(UnicomResponseEnums.NO_PERMISSION);
     }
 
+    /**
+     * 我的管理员
+     * @param httpServletRequest
+     * @return
+     */
     @GetMapping("/myAdmin")
     public ResultUtil findMessages(HttpServletRequest httpServletRequest){
         String token = httpServletRequest.getHeader("token");
@@ -78,6 +85,24 @@ public class AdminController {
         List<Map<String, Object>> bySetId = adminRepository.findBySetId(userId);
         System.out.println(bySetId);
         return ResultUtil.success(bySetId);
+    }
+
+    /**
+     * 申请管理员
+     * @param adminApply
+     * @param httpServletRequest
+     * @return
+     */
+    @RequestMapping("/apply")
+    public ResultUtil apply(@RequestBody AdminApply adminApply, HttpServletRequest httpServletRequest) {
+        String token = httpServletRequest.getHeader("token");
+        Integer userId = MyUtils.getUserIdFromToken(token);
+        adminApply.setUserId(userId);
+        adminApply.setCreateTime(new Date());
+        adminApply.setStatus(0);
+        adminApplyRepository.save(adminApply);
+        adminService.apply(adminApply);
+        return ResultUtil.success();
     }
 
 }

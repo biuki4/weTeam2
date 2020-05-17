@@ -1,12 +1,11 @@
 package com.iamk.weTeam.interceptor;
 
-import com.iamk.weTeam.common.UnicomResponseEnums;
-import com.iamk.weTeam.common.UnicomRuntimeException;
+import com.iamk.weTeam.common.Enum.UnicomResponseEnums;
+import com.iamk.weTeam.common.expection.UnicomRuntimeException;
 import com.iamk.weTeam.common.annotation.PassToken;
 import com.iamk.weTeam.common.utils.JwtUtils;
 import com.iamk.weTeam.common.utils.RedisKeyUtil;
 import com.iamk.weTeam.common.utils.RedisUtil;
-import com.iamk.weTeam.common.utils.ResultUtil;
 import com.iamk.weTeam.model.entity.User;
 import com.iamk.weTeam.repository.UserRepository;
 import io.jsonwebtoken.Claims;

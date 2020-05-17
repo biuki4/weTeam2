@@ -72,6 +72,16 @@ public class DateUtil {
         }
     }
 
+    public static Date parseDate2(String date) {
+        DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            return fmt.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * Date -> 字符串
      * @param date

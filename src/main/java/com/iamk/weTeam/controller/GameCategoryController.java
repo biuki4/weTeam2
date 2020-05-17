@@ -6,6 +6,7 @@ import com.iamk.weTeam.common.utils.ResultUtil;
 import com.iamk.weTeam.model.entity.GameCategory;
 import com.iamk.weTeam.repository.GameCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,7 +39,7 @@ public class GameCategoryController {
             return ResultUtil.success(o);
         }
 
-        List<GameCategory> categories = gameCategoryRepository.findAll();
+        List<GameCategory> categories = gameCategoryRepository.findAll(Sort.by(Sort.Direction.ASC, "rank"));
         // 存到redis 1h
         redisUtil.set(key, categories, 60*60);
         return ResultUtil.success(categories);

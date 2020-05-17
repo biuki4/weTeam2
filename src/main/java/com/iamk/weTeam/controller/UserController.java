@@ -2,12 +2,12 @@ package com.iamk.weTeam.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.iamk.weTeam.common.UnicomResponseEnums;
-import com.iamk.weTeam.common.UnicomRuntimeException;
+import com.iamk.weTeam.common.Enum.UnicomResponseEnums;
 import com.iamk.weTeam.common.annotation.PassToken;
+import com.iamk.weTeam.common.config.MiniProgramConfig;
+import com.iamk.weTeam.common.constant.UnionConstant;
 import com.iamk.weTeam.common.utils.*;
 import com.iamk.weTeam.model.entity.*;
-import com.iamk.weTeam.model.vo.IUserVo;
 import com.iamk.weTeam.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.commons.util.StringUtils;
@@ -31,8 +31,6 @@ public class UserController {
     @Resource
     UserRepository userRepository;
     @Resource
-    UserAttentionRepository userAttentionRepository;
-    @Resource
     AdvantageRepository advantageRepository;
     @Resource
     AcademyRepository academyRepository;
@@ -40,6 +38,8 @@ public class UserController {
     AdminRepository adminRepository;
     @Autowired
     RedisUtil redisUtil;
+    @Autowired
+    MiniProgramConfig miniProgramConfig;
 
 
 
@@ -73,11 +73,11 @@ public class UserController {
                                 @RequestParam(defaultValue = "") String sort,
                                 @RequestParam(defaultValue = "1") Integer currentPage,
                                 @RequestParam(defaultValue = "10") Integer pageSize) {
-        System.out.println("academy: " + academy);
-        System.out.println("grade: " + grade);
-        System.out.println("sort: " + sort);
-        System.out.println("curr: " + currentPage);
-        System.out.println("size: " + pageSize);
+        // System.out.println("academy: " + academy);
+        // System.out.println("grade: " + grade);
+        // System.out.println("sort: " + sort);
+        // System.out.println("curr: " + currentPage);
+        // System.out.println("size: " + pageSize);
         // showMe = 1
         Specification spec = SpecificationFactory.equal("showMe", 1);
         // name
@@ -195,6 +195,48 @@ public class UserController {
         return ResultUtil.success(user);
     }
 
+
+    @GetMapping("/getMyInfo")
+    public ResultUtil getMyInfo(HttpServletRequest httpServletRequest){
+        User user = null;
+        try {
+            String token = httpServletRequest.getHeader("token");
+            Integer userId = MyUtils.getUserIdFromToken(token);
+            user = userRepository.findById(userId).orElse(null);
+            // null
+            if (user == null){
+                return ResultUtil.error(UnicomResponseEnums.NO_USER_EXIST);
+            }
+            // academy
+            if(user.getAcademyId()!=null) {
+                Academy academy = academyRepository.findById(user.getAcademyId()).orElse(null);
+                if(academy != null){
+                    user.setAcademy(academy.getName());
+                }
+            }
+            // userType
+            Admin admin = adminRepository.findByUserId(userId);
+            if(admin!=null) {
+                user.setUserType(admin.getUserType());
+            }
+            // isBoundWeChat
+            // 是否关注公众号
+            if(StringUtils.isNotBlank(user.getUnionId())) {
+                JSONObject userFromUnionId = MyUtils.getUserFromUnionId(UnionConstant.WEAPPSECRET, miniProgramConfig.APPID, user.getUnionId());
+                boolean flag = userFromUnionId.get("status_code").equals("404") || !StringUtils.isNotBlank((String) userFromUnionId.get("bound_schoolAccount"));
+                int isBoundWx = 0;
+                if(!flag) {
+                    isBoundWx = (boolean) userFromUnionId.get("bound_wechatOfficialAccount") ? 1 : 0;
+                }
+                user.setIsBoundWeChat(isBoundWx);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return ResultUtil.success(user);
+    }
+
+
     /**
      * 修改用户信息
      * @param id    用户id
@@ -221,153 +263,6 @@ public class UserController {
             log.error(e.getMessage());
         }
         return ResultUtil.error(UnicomResponseEnums.UPDATE_FAIL);
-    }
-
-    /**
-     * 关注列表
-     * @param id    查看的用户id
-     * @return
-     */
-    @GetMapping("/attentionsList/{id}")
-    public ResponseEntity getAttentions(@PathVariable Integer id, HttpServletRequest httpServletRequest,
-                                        @RequestParam(defaultValue = "0") Integer currUseId) {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            // 这个id关注了谁
-            List<Integer> attentionIds = userAttentionRepository.findByUserId(id);
-            System.out.println(attentionIds);
-            List<User> attentions = userRepository.findByIdIn(attentionIds);
-            // 当前登录用户的关注列表
-            if(currUseId == 0){
-                String token = httpServletRequest.getHeader("token");
-                currUseId = MyUtils.getUserIdFromToken(token);
-            }
-            List<Integer> ids = userAttentionRepository.findByUserId(currUseId);
-            jsonObject.put("attentionIds", ids);
-            jsonObject.put("attentions", attentions);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return ResponseEntity.ok(ResultUtil.success(jsonObject));
-    }
-
-
-    /**
-     * fans列表
-     * @param id 查询的id
-     * @param httpServletRequest
-     * @param currUseId 当前登录的用户id
-     * @return
-     */
-    @GetMapping("/fansList/{id}")
-    public ResponseEntity getFans(@PathVariable Integer id, HttpServletRequest httpServletRequest,
-                                  @RequestParam(defaultValue = "0") Integer currUseId) {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            // 谁关注了这个id
-            List<Integer> fanIds = userAttentionRepository.findByAttentionId(id);
-            List<User> fans = userRepository.findByIdIn(fanIds);
-            // 当前登录用户的关注列表
-            if(currUseId == 0){
-                String token = httpServletRequest.getHeader("token");
-                currUseId = MyUtils.getUserIdFromToken(token);
-            }
-            List<Integer> ids = userAttentionRepository.findByUserId(currUseId);
-            jsonObject.put("attentionIds", ids);
-            jsonObject.put("fans", fans);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-
-        return ResponseEntity.ok(ResultUtil.success(jsonObject));
-    }
-
-
-    /**
-     * 关注总数
-     * @param id
-     * @param httpServletRequest
-     * @return
-     */
-    @RequestMapping("/countAttentions")
-    public ResultUtil countAttentions(@RequestParam(defaultValue = "0") Integer id,
-                                      HttpServletRequest httpServletRequest){
-        int num = 0;
-        try {
-            if(id==0){
-                String token = httpServletRequest.getHeader("token");
-                id = MyUtils.getUserIdFromToken(token);
-            }
-            num = userAttentionRepository.countByUserId(id);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return ResultUtil.success(num);
-    }
-
-    /**
-     * 粉丝总数
-     * @param id
-     * @param httpServletRequest
-     * @return
-     */
-    @RequestMapping("/countFans")
-    public ResultUtil countFans(@RequestParam(defaultValue = "0") Integer id,
-                                HttpServletRequest httpServletRequest){
-        int num = 0;
-        try {
-            if(id==0){
-                String token = httpServletRequest.getHeader("token");
-                id = MyUtils.getUserIdFromToken(token);
-            }
-            num = userAttentionRepository.countByAttentionId(id);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return ResultUtil.success(num);
-    }
-
-    /**
-     * 关注
-     * @param id
-     * @param httpServletRequest
-     * @return
-     */
-    @RequestMapping("/fan/{id}")
-    public ResultUtil fan(@PathVariable Integer id, HttpServletRequest httpServletRequest) {
-        try {
-            String token = httpServletRequest.getHeader("token");
-            Integer userId = MyUtils.getUserIdFromToken(token);
-            UserAttention ua = new UserAttention();
-            ua.setUserId(userId);
-            ua.setAttentionId(id);
-            userAttentionRepository.save(ua);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return ResultUtil.success();
-    }
-
-
-    /**
-     * 取消关注
-     * @param id
-     * @param httpServletRequest
-     * @return
-     */
-    @RequestMapping("/unFan/{id}")
-    public ResultUtil unFan(@PathVariable Integer id, HttpServletRequest httpServletRequest) {
-        try {
-            String token = httpServletRequest.getHeader("token");
-            Integer userId = MyUtils.getUserIdFromToken(token);
-            UserAttention ua = new UserAttention();
-            ua.setUserId(userId);
-            ua.setAttentionId(id);
-            userAttentionRepository.delete(ua);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return ResultUtil.success();
     }
 
 

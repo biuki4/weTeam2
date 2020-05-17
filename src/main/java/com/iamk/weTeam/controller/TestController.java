@@ -1,20 +1,25 @@
 package com.iamk.weTeam.controller;
 
-import com.iamk.weTeam.common.UnicomResponseEnums;
-import com.iamk.weTeam.common.UnicomRuntimeException;
+import com.alibaba.fastjson.JSONObject;
+import com.iamk.weTeam.common.Enum.UnicomResponseEnums;
+import com.iamk.weTeam.common.constant.MiniProgramConstant;
+import com.iamk.weTeam.common.constant.UnionConstant;
+import com.iamk.weTeam.common.expection.UnicomRuntimeException;
 import com.iamk.weTeam.common.annotation.PassToken;
 import com.iamk.weTeam.common.utils.DateUtil;
+import com.iamk.weTeam.common.utils.MyUtils;
 import com.iamk.weTeam.common.utils.RedisUtil;
 import com.iamk.weTeam.common.utils.ResultUtil;
 
 import com.iamk.weTeam.model.entity.Game;
 import com.iamk.weTeam.model.entity.GameTag;
+import com.iamk.weTeam.model.entity.TeamUser;
 import com.iamk.weTeam.repository.GameRepository;
 import com.iamk.weTeam.repository.GameTagRepository;
 
+import com.iamk.weTeam.repository.TeamUserRepository;
+import com.iamk.weTeam.wxMp.config.WxMpProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,181 +34,109 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/test")
 public class TestController {
 
     @Resource
     GameRepository gameRepository;
     @Resource
     GameTagRepository gameTagRepository;
+    @Resource
+    TeamUserRepository teamUserRepository;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
     @Autowired
     private RedisUtil redisUtil;
+    @Autowired
+    private WxMpProperties properties;
 
-    @PassToken
-    @GetMapping("/test2")
-    public boolean test() {
-        System.out.println("开始...");
-        //这里故意造成一个异常，并且不进行处理
-        Integer.parseInt("abc123");
-        return true;
-    }
-    @PassToken
-    @GetMapping("/testNull")
-    public boolean testNull() {
-        System.out.println("开始...");
-        //这里故意造成一个空指针的异常，并且不进行处理
-        String str = null;
-        str.equals("111");
-        return true;
-    }
-    @PassToken
-    @PostMapping("/testBizException")
-    public boolean testBizException() {
+    /**
+     * 时间测试 比较大小
+     * @return
+     * @throws ParseException
+     */
+    @RequestMapping("/test1")
+    public ResultUtil test() throws ParseException {
+        Game game = gameRepository.findById(1).orElse(null);
+        Date date1 = DateUtil.parseDate2("2020-05-05");
+        Date date2 = DateUtil.parseDate2("2020-05-06");
+        Date date3 = DateUtil.parseDate2("2020-05-07");
 
-        System.out.println("开始...");
-        //如果姓名为空就手动抛出一个自定义的异常！
-        String userName = null;
-        if (userName == null) {
-            throw new UnicomRuntimeException(UnicomResponseEnums.BAD_REQUEST, "1");
-        }
-        return true;
-    }
-    @PassToken
-    @GetMapping("/testSuccess")
-    public ResultUtil testSuccess() {
-        Map<String, String> map = new HashMap<>();
-        map.put("A", "a");
-        map.put("B", "b");
-        map.put("C", "c");
-        return ResultUtil.success(map);
-    }
-    @PassToken
-    @RequestMapping("/testError")
-    public ResultUtil testError() {
-        return ResultUtil.error("099", "错误错误错误");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date now = sdf.parse(sdf.format(new Date()));
 
+        System.out.println(now);
+        System.out.println(game.getRegisterStartTime());
+        boolean after = game.getRegisterStartTime().before(now);
+        boolean after2 = game.getRegisterEndTime().before(now);
+        boolean after3 = game.getGameStartTime().before(now);
+        System.out.println(after);
+        System.out.println(after2);
+        System.out.println(after3);
+        return ResultUtil.success();
+   }
+
+    /**
+     * 测试repository是否能用实体类做变量
+     * @return
+     * @throws ParseException
+     */
+    @RequestMapping("/test2")
+    public ResultUtil test2() throws ParseException {
+        TeamUser teamU = teamUserRepository.findByTeamIdAndUserId(9, 1);
+        teamU.setTeamId(teamU.getTeamId());
+        teamU.setUserId(teamU.getUserId());
+        teamU.setType(2);
+        // teamUserRepository.flush();
+        // Integer save = teamUserRepository.updateBase(teamU);
+        TeamUser save = teamUserRepository.saveAndFlush(teamU);
+        // Integer save = teamUserRepository.test();
+        System.out.println(save);
+
+        return ResultUtil.success(save);
     }
 
     /**
-     * 测试接收数组参数
+     * 测试unionId解析用户信息
      * @return
+     * @throws ParseException
      */
-    @PassToken
-    @RequestMapping("/testArray")
-    public ResultUtil testArray(@RequestParam String ids) {
+    @RequestMapping("/test3")
+    public ResultUtil test3() throws ParseException {
+        JSONObject userFromUnionId = MyUtils.getUserFromUnionId(UnionConstant.WEAPPSECRET, MiniProgramConstant.APPID, "oySnI1KkVx229hXS78T5MHY6TVWw");
 
-        List<GameTag> all = gameTagRepository.findAll();
-        System.out.println(all.toString());
-        System.out.println(all.size());
-        all.remove(0);
-        System.out.println(all.toString());
-        System.out.println(all.size());
+        return ResultUtil.success(userFromUnionId);
+    }
+
+
+    /**
+     * 字符串替换
+     * @return
+     * @throws ParseException
+     */
+    @RequestMapping("/test4")
+    public ResultUtil test4(@RequestParam String str)  {
+        System.out.println(str);
+
+        String regex = "(\")(.*)(\")";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(str );
+        while (matcher.find()) {
+            str = "“" + matcher.group(2) + "”";
+            matcher = pattern.matcher(str);
+        }
+
+        System.out.println(str);
         return ResultUtil.success();
     }
 
-    @PassToken
-    @RequestMapping("/testRedis")
-    public ResultUtil testRedis(@RequestParam String ids) {
-        redisUtil.set("name",ids);
-        System.out.println(redisUtil.getExpire("name"));
-        return ResultUtil.success(redisUtil.get("name"));
-    }
-
-    @PassToken
-    @RequestMapping("/uploadImg")
-    public String upload(MultipartFile file){
-        System.out.println("上传文件");
-        System.out.println(file);
-        return "成功";
-    }
-
-    /**
-     * 测试使用yml属性
-     * @return
-     */
-    // @Value("${file.path}")
-    // private String test;
-
-    @PassToken
-    @RequestMapping("/yml")
-    public String testYml(){
-        // System.out.println(test);
-        return "成功";
-    }
-
-    @PassToken
-    @RequestMapping("/root")
-    public String testRootPath(){
-        String root = System.getProperty("user.dir");
-        System.out.println(root);
-        // String path = ClassUtils.getDefaultClassLoader().getResource("").getPath();
-        // String path = ResourceUtils.getURL("classpath:").getPath();
-        // File upload = new File(path.getAbsolutePath(),"static/images/upload/");
-        // if(!upload.exists()) upload.mkdirs();
-        // System.out.println("upload url:"+upload.getAbsolutePath());
-        return "成功";
-    }
-
-    @PassToken
-    @RequestMapping("/testDate")
-    public void t(){
-        DateFormat sdfmat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Game game = gameRepository.findById(78).orElse(null);
-        Date gameEndTime = game.getGameEndTime();
-        Date date = new Date();
-        boolean b = DateUtil.compareDate(sdfmat.format(date), sdfmat.format(gameEndTime));
-        System.out.println(b);
-        System.out.println(sdfmat.format(date));
-        System.out.println(sdfmat.format(gameEndTime));
-
-        System.out.println(gameEndTime);
-        System.out.println(date);
-        System.out.println();
+    public static void main(String[] args) {
 
     }
-
-    public static void main(String[] args) throws ParseException {
-
-        DateFormat sdfmat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-        // Date date = new Date();
-        // String parse = sdf.format(date);
-        // Date parse1 = sdf.parse(parse);
-        // System.out.println(date);
-        // System.out.println(parse);
-        // System.out.println(parse1);
-        // System.out.println(date.getTime());
-        // System.out.println(parse1.getTime());
-        // long time = new Date().getTime();
-
-        // String format = sdfmat.format(date);
-        // String format1 = sdf.format(date);
-        // System.out.println(format);
-        // System.out.println(format1);
-        // Date parse = sdfmat.parse(format);
-        // Date parse1 = sdf.parse(format1);
-        // System.out.println(parse);
-        // System.out.println(parse1);
-        // String format2 = sdfmat.format(parse1);
-        // System.out.println(format2);
-
-
-        // DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        // fmt.parse(date);
-
-        // logger.info("未知异常！原因是:info");
-        // logger.error("未知异常！原因是:error");
-        // logger.warn("未知异常！原因是:warn");
-        // log.info("log4j2 test date: {}  info: {}", new Date(), "请关注公众号：Felordcn");
-
-
-    }
-
 
 }

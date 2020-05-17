@@ -15,4 +15,6 @@ public class GameCategory implements Serializable {
     private Integer id;
 
     private String category;
+
+    private Integer rank;
 }

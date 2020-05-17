@@ -1,7 +1,5 @@
 package com.iamk.weTeam.common.utils;
 
-import com.iamk.weTeam.model.entity.Game;
-import com.iamk.weTeam.model.entity.GameTag;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;

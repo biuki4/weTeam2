@@ -1,6 +1,6 @@
 package com.iamk.weTeam.common.utils;
 
-import com.iamk.weTeam.common.UnicomResponseEnums;
+import com.iamk.weTeam.common.Enum.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -111,6 +111,30 @@ public class ResultUtil implements Serializable {
     }
 
     public static ResultUtil error(UnicomResponseEnums enums) {
+        return new ResultUtil(false, enums.getCode(), enums.getMsg(), null);
+    }
+
+    public static ResultUtil error(GameEnum enums) {
+        return new ResultUtil(false, enums.getCode(), enums.getMsg(), null);
+    }
+
+    public static ResultUtil error(ActivityEnum enums) {
+        return new ResultUtil(false, enums.getCode(), enums.getMsg(), null);
+    }
+
+    public static ResultUtil error(AdminEnum enums) {
+        return new ResultUtil(false, enums.getCode(), enums.getMsg(), null);
+    }
+
+    public static ResultUtil error(TeamEnum enums) {
+        return new ResultUtil(false, enums.getCode(), enums.getMsg(), null);
+    }
+
+    public static ResultUtil error(LoginEnum enums) {
+        return new ResultUtil(false, enums.getCode(), enums.getMsg(), null);
+    }
+
+    public static ResultUtil error(UserEnum enums) {
         return new ResultUtil(false, enums.getCode(), enums.getMsg(), null);
     }
 }

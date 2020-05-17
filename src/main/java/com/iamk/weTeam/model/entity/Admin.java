@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 @Entity
@@ -19,4 +20,13 @@ public class Admin implements Serializable {
     private Integer setId;
 
     private Integer userType;
+
+    // private Date createTime;
+
+    private String email;
+
+    @Column(name = "_password")
+    private String password;
+
+    private String comment;
 }
