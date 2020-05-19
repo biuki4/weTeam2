@@ -41,23 +41,6 @@ public class UserController {
     @Autowired
     MiniProgramConfig miniProgramConfig;
 
-
-
-    /**
-     * 查找showMe = 1 的用户
-     * @param currentPage
-     * @param pageSize
-     * @return
-     */
-    // @PassToken
-    // @GetMapping("/showUsers")
-    // public ResultUtil showUsers(@RequestParam(defaultValue = "1") Integer currentPage,
-    //                             @RequestParam(defaultValue = "10") Integer pageSize){
-    //     Pageable pageable = PageRequest.of(currentPage-1, pageSize, Sort.by(Sort.Direction.DESC, "userViews"));
-    //     List<IUserVo> users = userRepository.findByShowMe(1, pageable);
-    //     return ResultUtil.success(users);
-    // }
-
     /**
      * 查找showMe = 1 的用户 + 筛选
      * @param currentPage
@@ -100,16 +83,6 @@ public class UserController {
         }
         // time
         Pageable pageable = PageRequest.of(currentPage-1, pageSize, Sort.by(Sort.Direction.DESC, "userViews"));
-        // if(StringUtils.isNotBlank(sort)){
-        //     switch (sort) {
-        //         // 访问量
-        //         case "1":
-        //             break;
-        //         // 点赞量
-        //         case "2":
-        //             break;
-        //     }
-        // }
 
         /*
          * 一个待解决的bug,同gameController
@@ -219,13 +192,11 @@ public class UserController {
             if(admin!=null) {
                 user.setUserType(admin.getUserType());
             }
-            // isBoundWeChat
             // 是否关注公众号
             if(StringUtils.isNotBlank(user.getUnionId())) {
                 JSONObject userFromUnionId = MyUtils.getUserFromUnionId(UnionConstant.WEAPPSECRET, miniProgramConfig.APPID, user.getUnionId());
-                boolean flag = userFromUnionId.get("status_code").equals("404") || !StringUtils.isNotBlank((String) userFromUnionId.get("bound_schoolAccount"));
                 int isBoundWx = 0;
-                if(!flag) {
+                if(StringUtils.isNotBlank((String) userFromUnionId.get("name"))){
                     isBoundWx = (boolean) userFromUnionId.get("bound_wechatOfficialAccount") ? 1 : 0;
                 }
                 user.setIsBoundWeChat(isBoundWx);

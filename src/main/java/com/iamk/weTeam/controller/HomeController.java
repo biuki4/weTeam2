@@ -114,56 +114,12 @@ public class HomeController {
 
             // 更新通过union获取的用户信息
             log.info(unionId);
-            log.info(user.toString());
             if(StringUtils.isNotBlank(unionId)) {
                 log.info("update user info by unionId");
                 JSONObject userFromUnionId = MyUtils.getUserFromUnionId(UnionConstant.WEAPPSECRET, miniProgramConfig.APPID, unionId);
-                log.info(String.valueOf(userFromUnionId));
 
-                // 用户在i瓜大中存在
-                // log.info(String.valueOf(userFromUnionId.get("bound_schoolAccount")));
-                // if(StringUtils.isNotBlank(String.valueOf(userFromUnionId.get("bound_schoolAccount")))) {
-                //     // isBoundNPU
-                //     log.info(String.valueOf(userFromUnionId.get("bound_schoolAccount")));
-                //     boolean bound_schoolAccount = (boolean) userFromUnionId.get("bound_schoolAccount");
-                //
-                //     // school_account
-                //     JSONObject school_account = (JSONObject) JSONObject.toJSON(userFromUnionId.get("school_account"));
-                //     log.info("school_account: " + school_account);
-                //
-                //     // unionUser
-                //     UnionUser unionUser = unionUserRepository.findByUserId(user.getId());
-                //
-                //     // isBoundWeChat
-                //     int isBoundWX = (boolean) userFromUnionId.get("bound_wechatOfficialAccount") ? 1 : 0;
-                //     log.info("isBoundWX: " + isBoundWX);
-                //
-                //     user.setIsBoundWeChat(isBoundWX);
-                //     // 仅更新首次登录，及已经绑定学校账号的用户
-                //     if(bound_schoolAccount && unionUser==null) {
-                //         log.info("update info from school account");
-                //         String school_id = (String) school_account.get("school_id");
-                //         log.info(school_id);
-                //
-                //         // username
-                //         user.setUsername(school_id);
-                //
-                //         // grade
-                //         user.setGrade(school_id.substring(0, 4));
-                //
-                //         // academy
-                //         Academy a = academyRepository.findByName(school_account.get("college"));
-                //
-                //         if(a!=null) {
-                //             user.setAcademyId(a.getId());
-                //             log.info(a.toString());
-                //         }
-                //
-                //         // 异步更新unionUser表
-                //         homeService.update(user, userFromUnionId);
-                //         user = userRepository.save(user);
-                //     }
-                // }
+                // 异步更新用户信息
+                homeService.update(user, userFromUnionId);
             }
 
             log.info("create token");
@@ -207,7 +163,7 @@ public class HomeController {
         if (token == null || "".equals(token)) {
             return ResultUtil.error(LoginEnum.LOGIN_HAS_NOT_LOGIN);
         }
-        // 是否过期
+        // 登录是否过期
         Integer userId = MyUtils.getUserIdFromToken(token);
         String key = RedisKeyUtil.createKey("login:user", "userId", userId);
         if(!redisUtil.hasKey(key)){
@@ -217,16 +173,15 @@ public class HomeController {
         String openId = MyUtils.getOpenIdFromToken(token);
         User user = userRepository.findByOpenId(openId);
         JSONObject jsonObject = new JSONObject();
+        // unionId不存在
         if(!StringUtils.isNotBlank(user.getUnionId())) {
             jsonObject.put("isBoundWeChat", 0);
             return ResultUtil.success(jsonObject);
         }
         JSONObject userFromUnionId = MyUtils.getUserFromUnionId(UnionConstant.WEAPPSECRET, miniProgramConfig.APPID, user.getUnionId());
-        System.out.println("userFromUnionId: " + userFromUnionId);
-        // 用户在i瓜大不存在
-        if(!StringUtils.isNotBlank(String.valueOf(userFromUnionId.get("bound_schoolAccount")))) {
-            jsonObject.put("isBoundWeChat", 0);
-        } else {
+        jsonObject.put("isBoundWeChat", 0);
+        // 是i瓜大用户
+        if(StringUtils.isNotBlank((String) userFromUnionId.get("name"))) {
             int isBoundWX = (boolean) userFromUnionId.get("bound_wechatOfficialAccount") ? 1 : 0;
             jsonObject.put("isBoundWeChat", isBoundWX);
         }
@@ -250,18 +205,18 @@ public class HomeController {
             jsonObject.put("isBoundWeChat", 0);
             return ResultUtil.success(jsonObject);
         }
+
         log.info("unionId: " + user.getUnionId());
-
         JSONObject userFromUnionId = MyUtils.getUserFromUnionId(UnionConstant.WEAPPSECRET, miniProgramConfig.APPID, user.getUnionId());
-        System.out.println("userFromUnionId: " + userFromUnionId);
+        log.info(String.valueOf(userFromUnionId));
 
-        if(!StringUtils.isNotBlank(String.valueOf(userFromUnionId.get("bound_schoolAccount")))) {
-            jsonObject.put("isBoundWeChat", 0);
-        } else {
+        jsonObject.put("isBoundWeChat", 0);
+        // 是i瓜大用户
+        if(StringUtils.isNotBlank((String) userFromUnionId.get("name"))) {
             int isBoundWX = (boolean) userFromUnionId.get("bound_wechatOfficialAccount") ? 1 : 0;
             jsonObject.put("isBoundWeChat", isBoundWX);
         }
-        System.out.println(jsonObject.toJSONString());
+        log.info(jsonObject.toJSONString());
         return ResultUtil.success(jsonObject);
     }
 

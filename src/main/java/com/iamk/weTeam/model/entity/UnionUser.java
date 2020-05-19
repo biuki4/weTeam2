@@ -24,5 +24,5 @@ public class UnionUser implements Serializable {
 
     private Integer boundSchoolAccount;
 
-    private Integer type;
+    private String type;
 }

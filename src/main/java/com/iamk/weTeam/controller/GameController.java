@@ -445,7 +445,7 @@ public class GameController {
         Integer postId = MyUtils.getUserIdFromToken(token);
         // 将iamk发送的自动设为官方发布的
         User user = userRepository.findById(postId).orElse(null);
-        if(user != null && user.getUnionId()!=null && !user.getUnionId().equals("")) {
+        if(user != null && StringUtils.isNotBlank(user.getUnionId())) {
             if(user.getUnionId().equals(UnionConstant.MY_UNION_ID)) {
                 postId = 1;
             }

@@ -6,6 +6,7 @@ import com.iamk.weTeam.common.Enum.AdminEnum;
 import com.iamk.weTeam.common.Enum.GameEnum;
 import com.iamk.weTeam.common.Enum.UnicomResponseEnums;
 import com.iamk.weTeam.common.annotation.PassToken;
+import com.iamk.weTeam.common.constant.UnionConstant;
 import com.iamk.weTeam.common.utils.*;
 import com.iamk.weTeam.model.dto.ActivityDTO;
 import com.iamk.weTeam.model.entity.*;
@@ -242,6 +243,13 @@ public class ActivityController {
         System.out.println("发布活动啦~");
         String token = httpServletRequest.getHeader("token");
         Integer postId = MyUtils.getUserIdFromToken(token);
+        // 将iamk发送的自动设为官方发布的
+        User user = userRepository.findById(postId).orElse(null);
+        if(user != null && StringUtils.isNotBlank(user.getUnionId())) {
+            if(user.getUnionId().equals(UnionConstant.MY_UNION_ID)) {
+                postId = 1;
+            }
+        }
         // 非管理员管理员
         Admin admin = adminRepository.findByUserId(postId);
         if(admin==null){

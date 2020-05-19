@@ -115,12 +115,13 @@ public class TeamServiceImpl implements TeamService {
         if(contact == null || "".equals(contact)) {
             contact = "暂未设置";
         }
-        content.put("keyword1", new String[]{"联系方式：\n" + contact, "#173177"});
-        content.put("keyword2", new String[]{"申请理由：\n" + applyDTO.getReason(), "#173177"});
-        content.put("keyword3", new String[]{"您的队伍：\n" + applyDTO.getTName(), "#173177"});
-
         String gName = gameRepository.findGameNameById(applyDTO.getGameId());
-        content.put("remark", new String[]{"竞赛名：\n" + gName, "#173177"});
+
+        content.put("keyword1", new String[]{gName, "#173177"});
+        content.put("keyword2", new String[]{applyDTO.getTName(), "#173177"});
+        content.put("keyword4", new String[]{contact, "#173177"});
+        content.put("keyword5", new String[]{applyDTO.getReason(), "#173177"});
+        content.put("remark", new String[]{"点击进入小程序处理~", "#173177"});
 
         // 处理单双引号
         for (Map.Entry<String, Object> entry : content.entrySet()) {

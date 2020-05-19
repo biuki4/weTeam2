@@ -15,7 +15,7 @@ public interface UnionConstant {
     /**
      * 新申请 消息模板id
      */
-    String TemplateId = "apoN62MIGtv1cdrJFT9rx8zIw7J3nlDIXMgDyoTNUhg";
+    String TemplateId = "AtF3sTDnDbk2wtJaS4rkd5Cb14P8RKLRskbg2xO9A00";
     /**
      * secret
      */

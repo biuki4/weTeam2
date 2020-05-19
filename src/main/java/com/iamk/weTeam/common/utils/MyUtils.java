@@ -117,7 +117,7 @@ public class MyUtils {
      * @return
      */
     public static JSONObject getUserFromUnionId(String secret, String appId, String unionId) {
-        log.info("decode info by unionId");
+        log.info("-----decode info by unionId-----");
         Map<String, String> params = new HashMap<>();
         params.put("weappid", appId);
         // sign
@@ -128,7 +128,8 @@ public class MyUtils {
         params.put("weapp_unionid", unionId);
         // System.out.println(params.toString());
         JSONObject jsonObject = JSON.parseObject(HttpClientUtil.doPost(UNION_URL + "/api/union/weapp/authorizations", params));
-        log.info("decode success");
+        log.info(jsonObject.toJSONString());
+        log.info("-----decode success-----");
         return jsonObject;
     }
 
